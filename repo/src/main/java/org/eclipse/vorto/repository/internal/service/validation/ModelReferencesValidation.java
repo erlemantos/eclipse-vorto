@@ -14,48 +14,51 @@
  *******************************************************************************/
 package org.eclipse.vorto.repository.internal.service.validation;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.eclipse.vorto.repository.model.ModelId;
 import org.eclipse.vorto.repository.model.ModelResource;
 import org.eclipse.vorto.repository.service.IModelRepository;
 import org.eclipse.vorto.repository.validation.IModelValidator;
 import org.eclipse.vorto.repository.validation.ValidationException;
 
+import com.google.common.base.Joiner;
+
 public class ModelReferencesValidation implements IModelValidator {
 
 	private IModelRepository modelRepository;
-	
+
 	public ModelReferencesValidation(IModelRepository modelRepository) {
 		this.modelRepository = modelRepository;
 	}
-	
+
 	@Override
-	public void validate(ModelResource modelResource)
-			throws ValidationException {
+	public void validate(ModelResource modelResource) throws ValidationException {
+		Collection<ModelId> unresolvedReferences = new ArrayList<ModelId>();
 		if (!modelResource.getReferences().isEmpty()) {
-			checkReferencesRecursive(modelResource);
+			checkReferencesRecursive(modelResource, unresolvedReferences);
+		}
+
+		if (unresolvedReferences.size() > 0) {
+			throw new CouldNotResolveReferenceException(createErrorMessage(modelResource, unresolvedReferences),
+					modelResource, unresolvedReferences);
 		}
 	}
-	
-	private void checkReferencesRecursive(ModelResource modelResource) {
+
+	private void checkReferencesRecursive(ModelResource modelResource, Collection<ModelId> unresolvedReferences) {
 		for (ModelId modelId : modelResource.getReferences()) {
 			ModelResource reference = modelRepository.getById(modelId);
 			if (reference == null) {
-				throw new CouldNotResolveReferenceException(modelResource, modelId);
+				unresolvedReferences.add(modelId);
+			} else {	
+				checkReferencesRecursive(reference, unresolvedReferences);
 			}
-			checkReferencesRecursive(reference);
 		}
 	}
-	
-	protected static class CouldNotResolveReferenceException extends ValidationException {
 
-		public CouldNotResolveReferenceException(ModelResource resource, ModelId faultyReference) {
-			super(createErrorMessage(resource, faultyReference), resource);
-		}	
-	}
-
-	private static String createErrorMessage(ModelResource resource,
-			ModelId faultyReference) {	
-		return String.format("Cannot resolve reference %s", faultyReference.getPrettyFormat());
+	private static String createErrorMessage(ModelResource resource, Collection<ModelId> faultyReferences) {
+		return "Some reference(s) cannot be resolved";
 	}
 
 }

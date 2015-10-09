@@ -14,17 +14,20 @@
  *******************************************************************************/
 package org.eclipse.vorto.repository.model;
 
-import org.eclipse.vorto.repository.validation.ValidationException;
+import java.util.Collection;
+import java.util.Collections;
 
+import org.eclipse.vorto.repository.internal.service.validation.CouldNotResolveReferenceException;
+import org.eclipse.vorto.repository.validation.ValidationException;
 
 public class UploadModelResult {
 	private String handleId = null;
 	private ModelResource modelResource = null;
 	private boolean valid = false;
 	private String errorMessage = null;
+	private Collection<ModelId> unresolvedReferences = Collections.emptyList();
 
-	private UploadModelResult(String handleId, ModelResource modelResource,
-			boolean valid, String errorMessage) {
+	private UploadModelResult(String handleId, ModelResource modelResource, boolean valid, String errorMessage) {
 		super();
 		this.handleId = handleId;
 		this.modelResource = modelResource;
@@ -32,16 +35,29 @@ public class UploadModelResult {
 		this.errorMessage = errorMessage;
 	}
 
+	private UploadModelResult(String handleId, ModelResource modelResource, boolean valid, String errorMessage,
+			Collection<ModelId> unresolvedReferences) {
+		this(handleId, modelResource, valid, errorMessage);
+		this.unresolvedReferences = unresolvedReferences;
+	}
+
 	public static UploadModelResult invalid(ValidationException validationException) {
-		return new UploadModelResult(null,validationException.getModelResource(), false, validationException.getMessage());
+		if (validationException instanceof CouldNotResolveReferenceException) {
+			CouldNotResolveReferenceException e = (CouldNotResolveReferenceException) validationException;
+			return new UploadModelResult(null, validationException.getModelResource(), false,
+					validationException.getMessage(), e.getUnresolvedReferences());
+		}
+		
+		return new UploadModelResult(null, validationException.getModelResource(), false,
+				validationException.getMessage());
 	}
-	
-	public static UploadModelResult invalid(ModelResource modelResource,String msg) {
-		return new UploadModelResult(null,modelResource, false, msg);
+
+	public static UploadModelResult invalid(ModelResource modelResource, String msg) {
+		return new UploadModelResult(null, modelResource, false, msg);
 	}
-	
+
 	public static UploadModelResult valid(String uploadHandle, ModelResource modelResource) {
-		return new UploadModelResult(uploadHandle,modelResource, true,null);
+		return new UploadModelResult(uploadHandle, modelResource, true, null);
 	}
 
 	public ModelResource getModelResource() {
@@ -59,6 +75,8 @@ public class UploadModelResult {
 	public String getHandleId() {
 		return handleId;
 	}
-		
-	
+
+	public Collection<ModelId> getUnresolvedReferences() {
+		return unresolvedReferences;
+	}
 }
