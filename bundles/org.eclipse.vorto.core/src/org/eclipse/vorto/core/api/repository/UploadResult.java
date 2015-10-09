@@ -14,11 +14,17 @@
  *******************************************************************************/
 package org.eclipse.vorto.core.api.repository;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.eclipse.vorto.core.model.ModelId;
+
 public class UploadResult {
 	String handleId;
 	String errorMessage;
 	boolean valid;
 	ModelResource modelResource;
+	Collection<ModelId> unresolvedReferences = Collections.emptyList();
 
 	public UploadResult() {
 
@@ -58,6 +64,14 @@ public class UploadResult {
 
 	public void setValid(boolean valid) {
 		this.valid = valid;
+	}
+	
+	public Collection<ModelId> getUnresolvedReferences() {
+		return unresolvedReferences;
+	}
+
+	public void setUnresolvedReferences(Collection<ModelId> unresolvedReferences) {
+		this.unresolvedReferences = unresolvedReferences;
 	}
 
 	@Override

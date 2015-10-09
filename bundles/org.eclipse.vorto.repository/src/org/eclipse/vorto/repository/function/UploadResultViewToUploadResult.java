@@ -22,6 +22,7 @@ public class UploadResultViewToUploadResult implements Function<UploadResultView
 		result.setErrorMessage(input.getErrorMessage());
 		result.setValid(input.isValid());
 		result.setModelResource(converter.apply(input.getModelResource()));
+		result.setUnresolvedReferences(input.getUnresolvedReferences());
 		return result;
 	}
 

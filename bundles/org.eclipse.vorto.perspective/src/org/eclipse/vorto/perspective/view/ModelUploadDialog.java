@@ -20,6 +20,7 @@ import java.util.Objects;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,11 +34,14 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.vorto.core.api.repository.ModelResource;
 import org.eclipse.vorto.core.api.repository.UploadResult;
 import org.eclipse.vorto.core.model.ModelId;
+import org.eclipse.vorto.perspective.util.ImageUtil;
 
 import com.google.common.base.Strings;
 
 public class ModelUploadDialog extends TitleAreaDialog {
 
+	private static final String UNAVAILABLE_ICON = "icon-cross1.png";
+	private static final String AVAILABLE_ICON = "icon-check1.png";
 	private static final String REFERENCES_LABEL = "References";
 	private static final String DESCRIPTION_LABEL = "Description";
 	private static final String DISPLAY_NAME_LABEL = "DisplayName";
@@ -48,7 +52,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 	private static final String WINDOW_TITLE = "Upload result";
 	private static final String ERROR_MSG = "ERROR - ";
 	private static final String SUCCESS_MSG = "OK - Uploaded model is valid and ready to be checked in.";
-	private static final String[] COLUMNS = new String[] { "Namespace", "Name", "Version", "ModelType" };
+	private static final String[] COLUMNS = new String[] { "", "Name", "Namespace", "Version" };
 
 	private UploadResult uploadResult;
 
@@ -83,7 +87,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 		String modelType = null;
 		String displayName = null;
 		String description = null;
-		
+
 		ModelResource modelResource = uploadResult.getModelResource();
 		if (modelResource != null) {
 			ModelId id = modelResource.getId();
@@ -133,7 +137,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 		Table table = new Table(container, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		table.setLayoutData(data);
 		table.setHeaderVisible(true);
-		table.setLinesVisible (true);
+		table.setLinesVisible(true);
 
 		for (String columnName : COLUMNS) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
@@ -143,16 +147,36 @@ public class ModelUploadDialog extends TitleAreaDialog {
 		if (references != null) {
 			for (ModelId id : references) {
 				TableItem item = new TableItem(table, 0);
-				item.setText(0, id.getNamespace());
+				item.setImage(0, getImage(id));
+				item.setImage(1, ImageUtil.getImageFor(id.getModelType()));
 				item.setText(1, id.getName());
-				item.setText(2, id.getVersion());
-				item.setText(3, id.getModelType().toString());
+				item.setText(2, id.getNamespace());
+				item.setText(3, id.getVersion());
 			}
 		}
 
 		for (int i = 0; i < COLUMNS.length; i++) {
 			table.getColumn(i).pack();
 		}
+	}
+
+	private Image getImage(ModelId model) {
+		String imgFile = AVAILABLE_ICON;
+		if (uploadResult.getUnresolvedReferences() != null) {
+			for (ModelId unresolvedModel : uploadResult.getUnresolvedReferences()) {
+				if (same(model, unresolvedModel)) {
+					imgFile = UNAVAILABLE_ICON;
+				}
+			}
+		}
+
+		return ImageUtil.getImage(imgFile);
+	}
+
+	private boolean same(ModelId modelId1, ModelId modelId2) {
+		return modelId2.getName().equals(modelId1.getName())
+				&& modelId2.getNamespace().equals(modelId1.getNamespace())
+				&& modelId2.getVersion().equals(modelId1.getVersion());
 	}
 
 	@Override
