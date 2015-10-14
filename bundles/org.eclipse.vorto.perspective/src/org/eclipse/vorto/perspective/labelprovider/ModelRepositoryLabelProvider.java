@@ -1,15 +1,11 @@
 package org.eclipse.vorto.perspective.labelprovider;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.vorto.core.api.repository.ModelResource;
-import org.eclipse.vorto.core.model.ModelType;
 import org.eclipse.vorto.perspective.util.ImageUtil;
 
 public class ModelRepositoryLabelProvider extends LabelProvider implements
@@ -36,7 +32,7 @@ public class ModelRepositoryLabelProvider extends LabelProvider implements
 	public Image getColumnImage(Object obj, int index) {
 		if (index == 0) {
 			ModelResource resource = (ModelResource) obj;
-			return ImageUtil.getImageFor(resource.getId().getModelType());
+			return ImageUtil.getImageForModelType(resource.getId().getModelType());
 		}
 		return null;
 	}

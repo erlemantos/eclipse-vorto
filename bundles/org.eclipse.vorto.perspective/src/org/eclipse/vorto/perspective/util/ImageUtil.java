@@ -34,7 +34,7 @@ public class ImageUtil {
 		return ImageDescriptor.createFromURL(url).createImage();
 	}
 	
-	public static Image getImageFor(ModelType modelType) {
+	public static Image getImageForModelType(ModelType modelType) {
 		return modelImageMap.get(modelType);
 	}
 }

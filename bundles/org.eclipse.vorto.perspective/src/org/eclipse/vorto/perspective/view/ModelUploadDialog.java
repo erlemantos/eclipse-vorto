@@ -40,8 +40,8 @@ import com.google.common.base.Strings;
 
 public class ModelUploadDialog extends TitleAreaDialog {
 
-	private static final String UNAVAILABLE_ICON = "icon-cross1.png";
-	private static final String AVAILABLE_ICON = "icon-check1.png";
+	private static final String UNAVAILABLE_ICON = "signed_no.gif";
+	private static final String AVAILABLE_ICON = "signed_yes.gif";
 	private static final String REFERENCES_LABEL = "References";
 	private static final String DESCRIPTION_LABEL = "Description";
 	private static final String DISPLAY_NAME_LABEL = "DisplayName";
@@ -148,7 +148,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 			for (ModelId id : references) {
 				TableItem item = new TableItem(table, 0);
 				item.setImage(0, getImage(id));
-				item.setImage(1, ImageUtil.getImageFor(id.getModelType()));
+				item.setImage(1, ImageUtil.getImageForModelType(id.getModelType()));
 				item.setText(1, id.getName());
 				item.setText(2, id.getNamespace());
 				item.setText(3, id.getVersion());

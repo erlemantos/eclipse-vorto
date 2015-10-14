@@ -14,7 +14,6 @@
  *******************************************************************************/
 package org.eclipse.vorto.repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Observable;
@@ -23,13 +22,13 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.eclipse.vorto.core.api.repository.CheckInModelException;
-import org.eclipse.vorto.core.api.repository.IModelQuery;
 import org.eclipse.vorto.core.api.repository.IModelRepository;
 import org.eclipse.vorto.core.api.repository.ModelResource;
 import org.eclipse.vorto.core.api.repository.UploadResult;
 import org.eclipse.vorto.core.model.ModelId;
 import org.eclipse.vorto.repository.function.ModelViewToModelResource;
 import org.eclipse.vorto.repository.function.StringToModelResourceResult;
+import org.eclipse.vorto.repository.function.StringToSearchResult;
 import org.eclipse.vorto.repository.function.StringToUploadResult;
 import org.eclipse.vorto.repository.function.UploadResultViewToUploadResult;
 import org.eclipse.vorto.repository.model.ModelView;
@@ -37,6 +36,8 @@ import org.eclipse.vorto.repository.model.UploadResultView;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 public class RestModelRepository extends Observable implements IModelRepository {
 
@@ -50,6 +51,7 @@ public class RestModelRepository extends Observable implements IModelRepository 
 	private Function<String, ModelView> contentConverters = new StringToModelResourceResult();
 	private Function<String, ModelResource> stringToModelResource = Functions.compose(modelViewToModelResource, contentConverters);
 	private Function<UploadResultView, UploadResult> uploadResultConverter = new UploadResultViewToUploadResult(modelViewToModelResource);
+	private Function<String, List<ModelView>> searchResultConverter = new StringToSearchResult();
 	
 	private Function<String, byte[]> stringToByteArray = new Function<String, byte[]>() {
 		public byte[] apply(String input) {
@@ -64,14 +66,20 @@ public class RestModelRepository extends Observable implements IModelRepository 
 		this.httpClient = new RestClient(connectionUrlSupplier);
 	}
 
-	public IModelQuery newQuery() {
-		return new RestModelQuery(httpClient, null, modelViewToModelResource);
-	}
-
 	@Override
 	public List<ModelResource> search(String expression) {
-		return new ArrayList<ModelResource>(new RestModelQuery(httpClient, null, modelViewToModelResource).newQuery(
-				expression).list());
+		try {
+			String searchExpr = expression;
+			if (Strings.isNullOrEmpty(expression)) {
+				searchExpr = "*";
+			}
+			List<ModelView> result = httpClient.executeGet("query=" + searchExpr, searchResultConverter);
+
+			// Convert the searchResult in result to return type
+			return Lists.transform(result, modelViewToModelResource);
+		} catch (Exception e) {
+			throw new RuntimeException("Error querying remote repository with queryString = " + expression, e);
+		}
 	}
 
 	@Override
