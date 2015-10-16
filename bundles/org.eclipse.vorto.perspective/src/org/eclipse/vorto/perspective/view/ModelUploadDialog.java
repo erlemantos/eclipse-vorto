@@ -49,7 +49,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 	private static final String VERSION_LABEL = "Version";
 	private static final String NAME_LABEL = "Name";
 	private static final String NAMESPACE_LABEL = "Namespace";
-	private static final String WINDOW_TITLE = "Upload result";
+	private static final String WINDOW_TITLE = "Share Model";
 	private static final String ERROR_MSG = "ERROR - ";
 	private static final String SUCCESS_MSG = "OK - Uploaded model is valid and ready to be checked in.";
 	private static final String[] COLUMNS = new String[] { "", "Name", "Namespace", "Version" };
@@ -182,6 +182,7 @@ public class ModelUploadDialog extends TitleAreaDialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		super.createButtonsForButtonBar(parent);
+		getButton(OK).setText("Share");
 		if (uploadResult.statusOk()) {
 			getButton(OK).setEnabled(true);
 		} else {

@@ -157,4 +157,6 @@ public class ModelRepositoryViewPart extends ViewPart {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
+	
+	
 }
